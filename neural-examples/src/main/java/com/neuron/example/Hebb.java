@@ -1,37 +1,20 @@
 package com.neuron.example;
 
 public class Hebb {
-	/**
-	 * Main method just instanciates a delta object and calls run.
-	 * 
-	 * @param args
-	 *            Not used
-	 */
+
 	public static void main(final String args[]) {
 		final Hebb delta = new Hebb();
 		delta.run();
 	}
 
-	/**
-	 * Weight for neuron 1
-	 */
-	double w1;
-	/**
-	 * Weight for neuron 2
-	 */
-	double w2;
-	/**
-	 * Learning rate
-	 */
-	double rate = 1.0;
-	/**
-	 * Current epoch #
-	 */
-	int epoch = 1;
+	private double neuron1Weight;
+	private double neuron2Weight;
+	private double learningRate = 1.0;
+	private int currentEpoch = 1;
 
 	public Hebb() {
-		this.w1 = 1;
-		this.w2 = -1;
+		this.neuron1Weight = 1;
+		this.neuron2Weight = -1;
 	}
 
 	/**
@@ -39,12 +22,12 @@ public class Hebb {
 	 * weights based on error.
 	 */
 	protected void epoch() {
-		System.out.println("***Beginning Epoch #" + this.epoch + "***");
+		System.out.println("***Beginning Epoch #" + this.currentEpoch + "***");
 		presentPattern(-1, -1);
 		presentPattern(-1, 1);
 		presentPattern(1, -1);
 		presentPattern(1, 1);
-		this.epoch++;
+		this.currentEpoch++;
 	}
 
 	/**
@@ -66,14 +49,16 @@ public class Hebb {
 		// and get the error
 		System.out.print("Presented [" + i1 + "," + i2 + "]");
 		result = recognize(i1, i2);
+		System.out.print(" Weigths [" + neuron1Weight + "," + neuron2Weight
+				+ "]");
 		System.out.print(" result=" + result);
 		// adjust weight 1
-		delta = trainingFunction(this.rate, i1, result);
-		this.w1 += delta;
+		delta = trainingFunction(this.learningRate, i1, result);
+		this.neuron1Weight += delta;
 		System.out.print(",delta w1=" + delta);
 		// adjust weight 2
-		delta = trainingFunction(this.rate, i2, result);
-		this.w2 += delta;
+		delta = trainingFunction(this.learningRate, i2, result);
+		this.neuron2Weight += delta;
 		System.out.println(",delta w2=" + delta);
 	}
 
@@ -87,7 +72,7 @@ public class Hebb {
 	 * @return the output from the neural network
 	 */
 	protected double recognize(final double i1, final double i2) {
-		final double a = (this.w1 * i1) + (this.w2 * i2);
+		final double a = (this.neuron1Weight * i1) + (this.neuron2Weight * i2);
 		return (a * .5);
 	}
 
