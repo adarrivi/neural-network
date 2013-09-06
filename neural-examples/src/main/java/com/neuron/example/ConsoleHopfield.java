@@ -1,4 +1,4 @@
-package com.neuron.hopfield;
+package com.neuron.example;
 
 import java.util.ArrayList;
 import java.util.List;

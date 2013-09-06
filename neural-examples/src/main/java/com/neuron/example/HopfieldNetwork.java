@@ -1,4 +1,4 @@
-package com.neuron.hopfield;
+package com.neuron.example;
 
 import org.encog.mathutil.matrices.BiPolarUtil;
 import org.encog.mathutil.matrices.Matrix;

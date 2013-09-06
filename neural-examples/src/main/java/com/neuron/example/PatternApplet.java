@@ -1,4 +1,4 @@
-package com.neuron.hopfield;
+package com.neuron.example;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
