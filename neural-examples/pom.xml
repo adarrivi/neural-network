@@ -25,6 +25,12 @@
 			<version>${org.encog.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.encog</groupId>
+			<artifactId>encog-examples</artifactId>
+			<version>${org.encog.version}</version>
+		</dependency>
+
 		<!-- Testing dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
