@@ -1,15 +1,14 @@
 package com.neuron.example;
 
-import org.encog.engine.network.activation.ActivationFunction;
 import org.encog.engine.network.activation.ActivationTANH;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
 import org.encog.neural.data.basic.BasicNeuralDataSet;
 import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.Train;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.pattern.FeedForwardPattern;
 
 public class XorBackPropagation {
 	private static final double ACCEPTABLE_ERROR = 0.001;
@@ -38,12 +37,13 @@ public class XorBackPropagation {
 	}
 
 	private void createFeedForwardNeuralNetwork() {
-		network = new BasicNetwork();
-		ActivationFunction activationFunction = new ActivationTANH();
-		network.addLayer(new BasicLayer(activationFunction, false, 2));
-		network.addLayer(new BasicLayer(activationFunction, false, 3));
-		network.addLayer(new BasicLayer(activationFunction, false, 1));
-		network.getStructure().finalizeStructure();
+
+		FeedForwardPattern pattern = new FeedForwardPattern();
+		pattern.setInputNeurons(2);
+		pattern.addHiddenLayer(3);
+		pattern.setOutputNeurons(1);
+		pattern.setActivationFunction(new ActivationTANH());
+		network = (BasicNetwork) pattern.generate();
 		network.reset();
 	}
 
