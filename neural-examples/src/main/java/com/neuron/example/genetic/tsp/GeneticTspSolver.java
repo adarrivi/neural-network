@@ -1,5 +1,7 @@
 package com.neuron.example.genetic.tsp;
 
+import java.util.Observable;
+
 import org.encog.ml.genetic.BasicGeneticAlgorithm;
 import org.encog.ml.genetic.GeneticAlgorithm;
 import org.encog.ml.genetic.crossover.SpliceNoRepeat;
@@ -11,80 +13,59 @@ import org.encog.ml.genetic.mutate.MutateShuffle;
 import org.encog.ml.genetic.population.BasicPopulation;
 import org.encog.ml.genetic.population.Population;
 
-public class GeneticTspSolver {
-	public static final int CITIES = 50;
-	public static final int POPULATION_SIZE = 1000;
-	public static final double MUTATION_PERCENT = 0.1;
-	public static final double PERCENT_TO_MATE = 0.24;
-	public static final double MATING_POPULATION_PERCENT = 0.5;
-	public static final int CUT_LENGTH = CITIES / 5;
-	public static final int MAP_SIZE = 250;
-	public static final int MAX_SAME_SOLUTION = 50;
+public class GeneticTspSolver extends Observable {
 
-	private GeneticAlgorithm genetic;
+	private TspProblemProperties problemProperties;
+	private GeneticAlgorithm geneticAlgorithm;
 	private City cities[];
 	private Country country;
 
-	/**
-	 * Place the cities in random locations.
-	 */
-	private void initCities() {
-		cities = new City[CITIES];
-		for (int i = 0; i < cities.length; i++) {
-			int xPos = (int) (Math.random() * MAP_SIZE);
-			int yPos = (int) (Math.random() * MAP_SIZE);
-
-			cities[i] = new City(xPos, yPos);
-		}
+	public GeneticTspSolver(City[] cities,
+			TspProblemProperties problemProperties) {
+		this.cities = cities;
+		this.problemProperties = problemProperties;
 	}
-
-	private void initPopulation(GeneticAlgorithm ga) {
-		country = new Country(cities);
-		ga.setCalculateScore(country);
-		Population population = new BasicPopulation(POPULATION_SIZE);
-		ga.setPopulation(population);
-
-		for (int i = 0; i < POPULATION_SIZE; i++) {
-			final TravelerGenome genome = new TravelerGenome(cities);
-			genome.createGenome();
-			ga.getPopulation().add(genome);
-			ga.calculateScore(genome);
-		}
-		population.claim(ga);
-		population.sort();
-	}
-
-	/**
-	 * Setup and solve the TSP.
-	 */
 
 	public void init() {
-		initCities();
-		genetic = new BasicGeneticAlgorithm();
+		geneticAlgorithm = new BasicGeneticAlgorithm();
+		country = new Country(cities);
+		geneticAlgorithm.setCalculateScore(country);
+		geneticAlgorithm.setMutationPercent(problemProperties
+				.getMutationPercent());
+		geneticAlgorithm.setPercentToMate(problemProperties.getPercentToMate());
+		geneticAlgorithm.setMatingPopulation(problemProperties
+				.getMatingPopulationPercent());
+		geneticAlgorithm.setCrossover(new SpliceNoRepeat(cities.length
+				/ problemProperties.getCrossoverSlices()));
+		geneticAlgorithm.setMutate(new MutateShuffle());
+		setRandomPopulation();
+	}
 
-		initPopulation(genetic);
-		genetic.setMutationPercent(MUTATION_PERCENT);
-		genetic.setPercentToMate(PERCENT_TO_MATE);
-		genetic.setMatingPopulation(MATING_POPULATION_PERCENT);
-		genetic.setCrossover(new SpliceNoRepeat(CITIES / 3));
-		genetic.setMutate(new MutateShuffle());
+	private void setRandomPopulation() {
+		Population population = new BasicPopulation(
+				problemProperties.getPopulationSize());
+		geneticAlgorithm.setPopulation(population);
 
+		for (int i = 0; i < problemProperties.getPopulationSize(); i++) {
+			final TravelerGenome genome = new TravelerGenome(cities);
+			genome.createGenome();
+			geneticAlgorithm.getPopulation().add(genome);
+			geneticAlgorithm.calculateScore(genome);
+		}
+		population.claim(geneticAlgorithm);
+		population.sort();
 	}
 
 	public void solve() {
 		int sameSolutionCount = 0;
 		int iteration = 1;
 		double lastSolution = Double.MAX_VALUE;
-
-		while (sameSolutionCount < MAX_SAME_SOLUTION) {
-			genetic.iteration();
-
-			Genome bestGenome = genetic.getPopulation().getBest();
+		while (sameSolutionCount < problemProperties.getMaxSameSolution()) {
+			geneticAlgorithm.iteration();
+			Genome bestGenome = geneticAlgorithm.getPopulation().getBest();
 			Traveler traveler = new Traveler((int[]) bestGenome.getOrganism(),
 					bestGenome.getScore(), iteration++);
-			country.addTraveler(traveler);
-			traveler.logTravelerInfo();
-
+			notifyNewTravelerFound(traveler);
 			if (Math.abs(lastSolution - traveler.getDistance()) < 1.0) {
 				sameSolutionCount++;
 			} else {
@@ -93,19 +74,19 @@ public class GeneticTspSolver {
 
 			lastSolution = traveler.getDistance();
 		}
-
 		System.out.println("Good solution found:");
 		displaySolution();
-
 	}
 
-	/**
-	 * Display the cities in the final path.
-	 */
-	public void displaySolution() {
+	private void notifyNewTravelerFound(Traveler traveler) {
+		traveler.logTravelerInfo();
+		setChanged();
+		notifyObservers(traveler);
+	}
 
+	private void displaySolution() {
 		boolean first = true;
-		Chromosome bestChromosome = genetic.getPopulation().getBest()
+		Chromosome bestChromosome = geneticAlgorithm.getPopulation().getBest()
 				.getChromosomes().get(0);
 		for (Gene gene : bestChromosome.getGenes()) {
 			if (!first)
@@ -114,10 +95,6 @@ public class GeneticTspSolver {
 			first = false;
 		}
 		System.out.println("");
-	}
-
-	public Country getCountry() {
-		return country;
 	}
 
 }

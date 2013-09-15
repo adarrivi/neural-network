@@ -1,43 +1,51 @@
 package com.neuron.example.genetic.tsp;
 
 import java.awt.Graphics;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.JPanel;
 
-public class TspContainer extends JPanel {
+public class TspContainer extends JPanel implements Observer {
 
 	private static final long serialVersionUID = 1L;
 	private CountryPanel countryPanel;
-	private Country country;
+	private City[] cities;
+	private TspProblemProperties problemProperties;
 
-	public TspContainer(Country country) {
-		this.country = country;
+	public TspContainer(City[] cities, TspProblemProperties problemProperties) {
+		this.cities = cities;
+		this.problemProperties = problemProperties;
 		setLayout(null);
-
-		createNewCountryPanel();
-
 		setVisible(true);
 	}
 
-	private void createNewCountryPanel() {
-		countryPanel = new CountryPanel(country);
-		countryPanel.setBounds(10, 11, 250, 250);
-		add(countryPanel);
+	@Override
+	public void update(Observable o, Object traveler) {
+		showPath((Traveler) traveler);
 	}
 
-	public void showNextPath() {
+	private void showPath(Traveler traveler) {
 		setLayout(null);
-		remove(countryPanel);
-		country.incrementCurrentTravelerIndex();
-		createNewCountryPanel();
+		if (countryPanel != null) {
+			remove(countryPanel);
+		}
+		createNewCountryPanel(traveler);
 		setVisible(true);
 		repaint();
 		validate();
 	}
 
+	private void createNewCountryPanel(Traveler traveler) {
+		countryPanel = new CountryPanel(cities, traveler, problemProperties);
+		add(countryPanel);
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		countryPanel.repaint();
+		if (countryPanel != null) {
+			countryPanel.repaint();
+		}
 	}
 }

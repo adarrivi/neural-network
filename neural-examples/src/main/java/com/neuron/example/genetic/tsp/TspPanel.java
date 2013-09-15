@@ -1,7 +1,6 @@
 package com.neuron.example.genetic.tsp;
 
 import java.awt.Rectangle;
-import java.util.Timer;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -9,11 +8,7 @@ import javax.swing.SwingUtilities;
 public class TspPanel extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static final TspPanel INSTANCE = new TspPanel();
-	private static final int SIZE_OFFSET = 40;
-	private static final int BUTTON_OFFSET = 40;
-	private static final Rectangle DIALOG_POS = new Rectangle(100, 100,
-			GeneticTspSolver.MAP_SIZE + SIZE_OFFSET, GeneticTspSolver.MAP_SIZE
-					+ SIZE_OFFSET + BUTTON_OFFSET);
+	private static final int SIZE_OFFSET = 100;
 
 	public static void main(String[] args) {
 		INSTANCE.run();
@@ -26,18 +21,32 @@ public class TspPanel extends JFrame {
 	}
 
 	private void run() {
+		TspProblemProperties problemProperties = new TspProblemProperties();
+		final RandomTravellingSalesmanProblem problem = new RandomTravellingSalesmanProblem(
+				problemProperties);
+		problem.init();
 		setTitle("Genetic Tsp");
-		setBounds(DIALOG_POS);
+		Rectangle dialogPos = new Rectangle(100, 100,
+				problemProperties.getMapSize() + SIZE_OFFSET,
+				problemProperties.getMapSize() + SIZE_OFFSET);
+
+		setBounds(dialogPos);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		GeneticTspSolver tspSolver = new GeneticTspSolver();
-		tspSolver.init();
-		tspSolver.solve();
-		TspContainer tspContainer = new TspContainer(tspSolver.getCountry());
+		TspContainer tspContainer = new TspContainer(problem.getCities(),
+				problemProperties);
 		getContentPane().add(tspContainer);
+		problem.addTravelerObserver(tspContainer);
+		Thread thread = new Thread(new Runnable() {
 
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(new ShowNextBestTask(tspContainer), 0, 50);
+			@Override
+			public void run() {
+				problem.solve();
+
+			}
+		});
+		thread.start();
+
 	}
 }
