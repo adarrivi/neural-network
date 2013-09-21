@@ -1,23 +1,40 @@
 package com.neuron.example.genetic.tsp;
 
-import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class TspContainer extends JPanel implements Observer {
 
 	private static final long serialVersionUID = 1L;
 	private CountryPanel countryPanel;
-	private City[] cities;
 	private TspProblemProperties problemProperties;
+	private RandomTravellingSalesmanProblem problem;
+	private JButton restartButton;
 
-	public TspContainer(City[] cities, TspProblemProperties problemProperties) {
-		this.cities = cities;
+	public TspContainer(TspProblemProperties problemProperties) {
 		this.problemProperties = problemProperties;
 		setLayout(null);
 		setVisible(true);
+	}
+
+	public void startNewRandomProblem() {
+		problem = new RandomTravellingSalesmanProblem(problemProperties);
+		problem.init();
+		problem.addTravelerObserver(this);
+		Thread thread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				problem.solve();
+			}
+		});
+		thread.start();
+
 	}
 
 	@Override
@@ -26,26 +43,32 @@ public class TspContainer extends JPanel implements Observer {
 	}
 
 	private void showPath(Traveler traveler) {
-		setLayout(null);
-		if (countryPanel != null) {
-			remove(countryPanel);
-		}
-		createNewCountryPanel(traveler);
-		setVisible(true);
-		repaint();
-		validate();
+		countryPanel.setCities(problem.getCities());
+		countryPanel.setTraveler(traveler);
+		countryPanel.repaint();
 	}
 
-	private void createNewCountryPanel(Traveler traveler) {
-		countryPanel = new CountryPanel(cities, traveler, problemProperties);
+	public void draw() {
+		createRestartButton();
+		createCountryPanel();
+	}
+
+	private void createCountryPanel() {
+		countryPanel = new CountryPanel(problemProperties.getMapSize(), 10, 34);
 		add(countryPanel);
 	}
 
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		if (countryPanel != null) {
-			countryPanel.repaint();
-		}
+	private void createRestartButton() {
+		restartButton = new JButton("Restart");
+		restartButton.setBounds(10, 11, 89, 23);
+		restartButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startNewRandomProblem();
+
+			}
+		});
+		add(restartButton);
 	}
 }

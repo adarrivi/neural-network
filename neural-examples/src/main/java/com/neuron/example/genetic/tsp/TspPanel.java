@@ -8,6 +8,8 @@ import javax.swing.SwingUtilities;
 public class TspPanel extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static final TspPanel INSTANCE = new TspPanel();
+
+	private TspProblemProperties problemProperties;
 	private static final int SIZE_OFFSET = 100;
 
 	public static void main(String[] args) {
@@ -21,10 +23,15 @@ public class TspPanel extends JFrame {
 	}
 
 	private void run() {
-		TspProblemProperties problemProperties = new TspProblemProperties();
-		final RandomTravellingSalesmanProblem problem = new RandomTravellingSalesmanProblem(
-				problemProperties);
-		problem.init();
+		setTSProblemParameters();
+		createPanel();
+	}
+
+	private void setTSProblemParameters() {
+		problemProperties = new TspProblemProperties();
+	}
+
+	private void createPanel() {
 		setTitle("Genetic Tsp");
 		Rectangle dialogPos = new Rectangle(100, 100,
 				problemProperties.getMapSize() + SIZE_OFFSET,
@@ -34,19 +41,8 @@ public class TspPanel extends JFrame {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		TspContainer tspContainer = new TspContainer(problem.getCities(),
-				problemProperties);
+		TspContainer tspContainer = new TspContainer(problemProperties);
+		tspContainer.draw();
 		getContentPane().add(tspContainer);
-		problem.addTravelerObserver(tspContainer);
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				problem.solve();
-
-			}
-		});
-		thread.start();
-
 	}
 }
